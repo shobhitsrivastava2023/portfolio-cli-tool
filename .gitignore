@@ -1,0 +1,34 @@
+please create a gitignore for just the cli app for now
+11:34 pm
+Working
+
+text
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Test portfolios generated during dev
+my-portfolio/
+test-portfolio/
