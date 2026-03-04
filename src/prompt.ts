@@ -1,5 +1,5 @@
 import inquirer from "inquirer";
-
+import fs from "fs-extra";
 export interface Experience {
   company: string;
   role: string;
@@ -29,7 +29,8 @@ export interface PortfolioData {
   experience: Experience[];
   projects: Project[];
   theme: string;
-  accentColor: string;
+ 
+  photoPath : string,
 }
 
 
@@ -214,28 +215,24 @@ async function askProjects(): Promise<Project[]> {
 async function askTheme() {
   return inquirer.prompt([
     {
-      type: "list",
-      name: "theme",
-      message: "Choose a theme:",
-      choices: [
-        { name: "Dark Minimal", value: "dark-minimal" },
-        { name: "Retro Terminal", value: "retro" },
-        { name: "Glass / Frosted", value: "glass" },
-        { name: "Editorial / Bold", value: "editorial" },
-      ],
-    },
-    {
-      type: "list",
-      name: "accentColor",
-      message: "Choose an accent color:",
-      choices: [
-        { name: "Cyan", value: "cyan" },
-        { name: "Orange", value: "orange" },
-        { name: "Rose", value: "rose" },
-        { name: "Violet", value: "violet" },
-        { name: "Emerald", value: "emerald" },
-      ],
-    },
+  type: "input",
+  name: "photoPath",
+  message: "Profile photo path (leave blank to skip):",
+  validate: (v: string) => {
+    if (!v) return true; // optional
+    if (!fs.existsSync(v)) return "File not found, check the path";
+    return true;
+  }
+},
+{
+  type: "list",
+  name: "theme",
+  message: "Choose a theme:",
+  choices: [
+    { name: "⬜  Light", value: "light" },
+    { name: "⬛  Dark",  value: "dark"  },
+  ]
+}
   ]);
 }
 // at the bottom of src/prompts.ts

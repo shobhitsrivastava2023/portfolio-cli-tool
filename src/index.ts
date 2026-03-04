@@ -26,9 +26,15 @@ async function main() {
   console.log("Project name:", data.projectName);
   await generatePortfolio(data, projectPath);
 
-  console.log(chalk.green("\n✔ All done!\n"));
+  console.log(chalk.green("\n✔ Your portfolio is ready!\n"));
   console.log(chalk.white(`  cd ${data.projectName}`));
   console.log(chalk.white("  npm run dev\n"));
+  console.log(chalk.yellow("  📸 Profile photo:"));
+  console.log(
+    chalk.gray(
+      `  Drop your photo into ${data.projectName}/public/ and name it profile.jpg or profile.png\n`,
+    ),
+  );
 
   console.log();
 }
