@@ -5,7 +5,10 @@ import ora from "ora";
 import { PortfolioData } from "./prompt";
 import { getTheme } from "./themes";
 
-export async function generatePortfolio(data: PortfolioData, projectPath: string) {
+export async function generatePortfolio(
+  data: PortfolioData,
+  projectPath: string,
+) {
   const spinner = ora("Generating your portfolio...").start();
   const theme = getTheme(data.theme);
 
@@ -13,15 +16,39 @@ export async function generatePortfolio(data: PortfolioData, projectPath: string
     const componentsDir = path.join(projectPath, "app", "components");
     await fs.ensureDir(componentsDir);
 
-    await fs.writeFile(path.join(projectPath, "app", "globals.css"), generateCSS(theme));
-    await fs.writeFile(path.join(projectPath, "app", "layout.tsx"), generateLayout(data));
-    await fs.writeFile(path.join(projectPath, "app", "page.tsx"), generatePage(data));
+    await fs.writeFile(
+      path.join(projectPath, "app", "globals.css"),
+      generateCSS(theme),
+    );
+    await fs.writeFile(
+      path.join(projectPath, "app", "layout.tsx"),
+      generateLayout(data),
+    );
+    await fs.writeFile(
+      path.join(projectPath, "app", "page.tsx"),
+      generatePage(data),
+    );
     await fs.writeFile(path.join(componentsDir, "Nav.tsx"), generateNav(data));
-    await fs.writeFile(path.join(componentsDir, "Hero.tsx"), generateHero(data));
-    await fs.writeFile(path.join(componentsDir, "Experience.tsx"), generateExperience(data));
-    await fs.writeFile(path.join(componentsDir, "Projects.tsx"), generateProjects(data));
-    await fs.writeFile(path.join(componentsDir, "Skills.tsx"), generateSkills(data));
-    await fs.writeFile(path.join(componentsDir, "Contact.tsx"), generateContact(data));
+    await fs.writeFile(
+      path.join(componentsDir, "Hero.tsx"),
+      generateHero(data),
+    );
+    await fs.writeFile(
+      path.join(componentsDir, "Experience.tsx"),
+      generateExperience(data),
+    );
+    await fs.writeFile(
+      path.join(componentsDir, "Projects.tsx"),
+      generateProjects(data),
+    );
+    await fs.writeFile(
+      path.join(componentsDir, "Skills.tsx"),
+      generateSkills(data),
+    );
+    await fs.writeFile(
+      path.join(componentsDir, "Contact.tsx"),
+      generateContact(data),
+    );
 
     await copyPhoto(data, projectPath);
 
@@ -36,7 +63,10 @@ async function copyPhoto(data: PortfolioData, projectPath: string) {
   if (!data.photoPath) return;
   try {
     const ext = path.extname(data.photoPath) || ".jpg";
-    await fs.copy(data.photoPath, path.join(projectPath, "public", `photo${ext}`));
+    await fs.copy(
+      data.photoPath,
+      path.join(projectPath, "public", `photo${ext}`),
+    );
   } catch {
     console.warn("\n⚠ Could not copy photo, skipping.");
   }
@@ -114,6 +144,22 @@ a { color: inherit; text-decoration: none; }
 `.trim();
 }
 
+// Add this helper string at the top of generator.ts
+const FADE_IN_COMPONENT = `
+function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.5, delay, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+`;
+
 // ─── LAYOUT ─────────────────────────────────────────────────────────────────
 
 function generateLayout(data: PortfolioData): string {
@@ -154,10 +200,18 @@ export default function Portfolio() {
     <>
       <Nav name="${data.name}" />
       <main style={{ maxWidth: "680px", margin: "0 auto", padding: "0 1.5rem" }}>
+      <FadeIn>
         <Hero />
+        </FadeIn>
+        <FadeIn>
         <Experience />
+        </FadeIn>
+        <FadeIn>
         <Projects />
+         </FadeIn>
+         <FadeIn>
         <Skills />
+        </FadeIn>
         <Contact />
       </main>
       <footer style={{
@@ -181,54 +235,96 @@ export default function Portfolio() {
 function generateNav(data: PortfolioData): string {
   return `
 "use client";
-import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
-export default function Nav({ name }: { name: string }) {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", fn);
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
+export default function Nav() {
+  const links = [
+    { label: "Work",       href: "#projects"   },
+    { label: "Experience", href: "#experience" },
+    { label: "Skills",     href: "#skills"     },
+    { label: "Contact",    href: "#contact"    },
+  ];
 
   return (
-    <nav style={{
-      position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      padding: "0 2rem", height: "56px",
-      background: scrolled ? "var(--bg)" : "transparent",
-      borderBottom: scrolled ? "1px solid var(--border)" : "1px solid transparent",
-      transition: "all 0.25s ease",
-    }}>
+    <>
+      <style>{\`
+        .nav-link { font-size: 0.8rem; color: var(--text-secondary); padding: 0.35rem 0.75rem; border-radius: 99px; transition: all 0.15s; text-decoration: none; }
+        .nav-link:hover { color: var(--text-primary); background: var(--border); }
+        .nav-label { font-size: 0.8rem; }
+        .nav-available { font-size: 0.72rem; }
+        .nav-divider { display: flex; }
 
-      {/* left — name + status */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-        <span style={{ fontWeight: 500, fontSize: "0.9rem" }}>${data.name}</span>
-        <span style={{
+        @media (max-width: 520px) {
+          .nav-label { display: none; }
+          .nav-available { display: none; }
+          .nav-divider { display: none; }
+          .nav-link { font-size: 0.75rem; padding: 0.3rem 0.55rem; }
+        }
+      \`}</style>
+
+      <motion.nav
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
+        style={{
+          position: "fixed",
+          bottom: "1.5rem",
+          left: 0,
+          right: 0,
+          marginLeft: "auto",
+          marginRight: "auto",
+          width: "fit-content",
+          maxWidth: "calc(100vw - 2rem)",
+          zIndex: 50,
+          display: "flex",
+          alignItems: "center",
+          gap: "0.1rem",
+          padding: "0.4rem 0.6rem",
+          background: "var(--nav-bg)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          border: "1px solid var(--border)",
+          borderRadius: "99px",
+          boxShadow: "0 8px 32px var(--nav-shadow)",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {/* Name pill */}
+        <span className="nav-label" style={{
+          fontWeight: 600,
+          padding: "0.35rem 0.9rem",
+          background: "var(--accent)", color: "var(--accent-fg)",
+          borderRadius: "99px", marginRight: "0.25rem",
+        }}>
+          ${data.name.split(" ")[0]}
+        </span>
+
+        {/* Divider */}
+        <span className="nav-divider" style={{
+          width: "1px", height: "16px", background: "var(--border)", margin: "0 0.15rem",
+        }} />
+
+        {/* Links */}
+        {links.map(link => (
+          <a key={link.label} href={link.href} className="nav-link">{link.label}</a>
+        ))}
+
+        {/* Divider */}
+        <span className="nav-divider" style={{
+          width: "1px", height: "16px", background: "var(--border)", margin: "0 0.15rem",
+        }} />
+
+        {/* Available */}
+        <span className="nav-available" style={{
           display: "flex", alignItems: "center", gap: "0.3rem",
-          fontSize: "0.72rem", color: "var(--text-muted)",
-          border: "1px solid var(--border)", borderRadius: "99px",
-          padding: "0.2rem 0.6rem",
+          color: "var(--text-muted)", padding: "0.35rem 0.6rem",
         }}>
           <span style={{ width: "6px", height: "6px", borderRadius: "50%",
-            background: "#4ade80", display: "inline-block" }} />
+            background: "#4ade80", flexShrink: 0 }} />
           Available
         </span>
-      </div>
-
-      {/* right — nav links */}
-      <div style={{ display: "flex", gap: "1.75rem" }}>
-        {["Experience", "Projects", "Skills", "Contact"].map(link => (
-          <a key={link} href={"#" + link.toLowerCase()}
-            style={{ fontSize: "0.82rem", color: "var(--text-secondary)",
-              transition: "color 0.15s" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}
-          >{link}</a>
-        ))}
-      </div>
-    </nav>
+      </motion.nav>
+    </>
   );
 }
 `.trim();
@@ -261,7 +357,7 @@ export default function Hero() {
           flexShrink: 0,
         }}>
           <img
-            src="/profile.jpg"
+            src="profile.jpg"
             alt="${data.name}"
             style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
             onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
@@ -320,34 +416,50 @@ export default function Hero() {
 
       {/* Socials row */}
       <div className="fade-up fade-up-4" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-        ${data.email ? `<a href="mailto:${data.email}" className="card" style={{
+        ${
+          data.email
+            ? `<a href="mailto:${data.email}" className="card" style={{
           padding: "0.5rem 1rem", fontSize: "0.8rem", color: "var(--text-secondary)",
           transition: "color 0.15s", display: "inline-flex", alignItems: "center", gap: "0.4rem",
         }}
           onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
           onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}
-        >✉ Email</a>` : ""}
-        ${data.github ? `<a href="${data.github}" target="_blank" rel="noreferrer" className="card" style={{
+        >✉ Email</a>`
+            : ""
+        }
+        ${
+          data.github
+            ? `<a href="${data.github}" target="_blank" rel="noreferrer" className="card" style={{
           padding: "0.5rem 1rem", fontSize: "0.8rem", color: "var(--text-secondary)",
           transition: "color 0.15s", display: "inline-flex", alignItems: "center", gap: "0.4rem",
         }}
           onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
           onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}
-        >↗ GitHub</a>` : ""}
-        ${data.linkedin ? `<a href="${data.linkedin}" target="_blank" rel="noreferrer" className="card" style={{
+        >↗ GitHub</a>`
+            : ""
+        }
+        ${
+          data.linkedin
+            ? `<a href="${data.linkedin}" target="_blank" rel="noreferrer" className="card" style={{
           padding: "0.5rem 1rem", fontSize: "0.8rem", color: "var(--text-secondary)",
           transition: "color 0.15s", display: "inline-flex", alignItems: "center", gap: "0.4rem",
         }}
           onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
           onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}
-        >↗ LinkedIn</a>` : ""}
-        ${data.twitter ? `<a href="${data.twitter}" target="_blank" rel="noreferrer" className="card" style={{
+        >↗ LinkedIn</a>`
+            : ""
+        }
+        ${
+          data.twitter
+            ? `<a href="${data.twitter}" target="_blank" rel="noreferrer" className="card" style={{
           padding: "0.5rem 1rem", fontSize: "0.8rem", color: "var(--text-secondary)",
           transition: "color 0.15s", display: "inline-flex", alignItems: "center", gap: "0.4rem",
         }}
           onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
           onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}
-        >↗ Twitter</a>` : ""}
+        >↗ Twitter</a>`
+            : ""
+        }
       </div>
 
     </section>

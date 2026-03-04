@@ -31,7 +31,7 @@ export async function scaffoldProject(data: PortfolioData) {
         "--import-alias",
         "@/*",
         "--use-npm",
-        "--yes"
+        "--yes",
       ],
       {
         cwd: process.cwd(),
@@ -62,6 +62,13 @@ export async function scaffoldProject(data: PortfolioData) {
     spinner.fail("Failed to scaffold Next.js app.");
     throw err;
   }
+
+  const depsSpinner = ora("Installing dependencies...").start();
+  await execa("npm", ["install", "framer-motion"], {
+    cwd: projectPath,
+    stdio: "ignore",
+  });
+  depsSpinner.succeed("Dependencies installed!");
 
   const dataSpinner = ora("Writing portfolio data...").start();
 
