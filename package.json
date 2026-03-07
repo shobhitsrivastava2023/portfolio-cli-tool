@@ -14,14 +14,17 @@
     "dist"
   ],
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@types/inquirer": "^8.2.12",
     "execa": "^5.1.1",
     "figlet": "^1.10.0",
     "fs-extra": "^11.3.4",
     "inquirer": "^8.2.7",
-    "ora": "^5.4.1"
+    "ora": "^5.4.1",
+    "pdf-parse": "^2.4.5"
   },
   "devDependencies": {
-    "@types/fs-extra": "^11.0.4"
+    "@types/fs-extra": "^11.0.4",
+    "@types/pdf-parse": "^1.1.5"
   }
 }

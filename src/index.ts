@@ -29,13 +29,16 @@ async function main() {
   console.log(chalk.green("\n✔ Your portfolio is ready!\n"));
   console.log(chalk.white(`  cd ${data.projectName}`));
   console.log(chalk.white("  npm run dev\n"));
-  console.log(chalk.yellow("  📸 Profile photo:"));
-  console.log(
-    chalk.gray(
-      `  Drop your photo into ${data.projectName}/public/ and name it profile.jpg or profile.png\n`,
-    ),
-  );
+  console.log(chalk.yellow("  📸 Add your photos to the public/ folder:\n"));
+  console.log(chalk.gray("     profile.jpg     — your profile photo"));
 
+  data.projects.forEach((proj: any, i: number) => {
+    console.log(chalk.gray(`     project${i + 1}.jpg     — ${proj.name}`));
+  });
+
+  console.log(
+    chalk.gray("\n  (.png works too — it'll try both automatically)\n"),
+  );
   console.log();
 }
 

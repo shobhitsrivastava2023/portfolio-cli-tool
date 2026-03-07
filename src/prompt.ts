@@ -1,5 +1,6 @@
 import inquirer from "inquirer";
 import fs from "fs-extra";
+import { runResumeFlow } from "./resume";
 export interface Experience {
   company: string;
   role: string;
@@ -235,14 +236,39 @@ async function askTheme() {
 }
   ]);
 }
-// at the bottom of src/prompts.ts
+
 export async function runPrompts(): Promise<PortfolioData> {
+
+
+  const { mode } = await inquirer.prompt([{
+    type: "list",
+    name: "mode",
+    message: "How do you want to fill in your portfolio?",
+    choices: [
+      { name: "  Import from resume (AI-powered)", value: "resume" },
+      { name: "   Fill in manually",                value: "manual" },
+    ],
+  }]);
+
+  if (mode === "resume") {
+    try {
+      const resumeData = await runResumeFlow();
+      const { theme } = await askTheme();
+      return { ...resumeData, theme };
+    } catch (err) {
+      console.log(`\n  ✖ ${(err as Error).message}`);
+      console.log("  Falling back to manual entry...\n");
+     
+    }
+  }
+
+
   const basic = await askBasicInfo();
   const social = await askSocialLinks();
   const skills = await askSkills();
   const experience = await askExperience();
   const projects = await askProjects();
-  const { theme, accentColor } = await askTheme();  // ← destructure explicitly
+  const { theme } = await askTheme();
 
   return {
     ...basic,
@@ -250,7 +276,6 @@ export async function runPrompts(): Promise<PortfolioData> {
     skills,
     experience,
     projects,
-    theme,          // ← now TS knows these exist
-    accentColor,
+    theme,
   };
 }

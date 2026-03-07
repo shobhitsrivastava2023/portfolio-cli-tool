@@ -196,9 +196,21 @@ import Skills     from "./components/Skills";
 import Contact    from "./components/Contact";
 
 export default function Portfolio() {
+function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.5, delay, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
   return (
     <>
-      <Nav name="${data.name}" />
+      <Nav />
       <main style={{ maxWidth: "680px", margin: "0 auto", padding: "0 1.5rem" }}>
       <FadeIn>
         <Hero />
@@ -418,13 +430,24 @@ export default function Hero() {
       <div className="fade-up fade-up-4" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
         ${
           data.email
-            ? `<a href="mailto:${data.email}" className="card" style={{
-          padding: "0.5rem 1rem", fontSize: "0.8rem", color: "var(--text-secondary)",
-          transition: "color 0.15s", display: "inline-flex", alignItems: "center", gap: "0.4rem",
-        }}
-          onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
-          onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}
-        >✉ Email</a>`
+            ? `<a href="..." className="card" style={{
+  padding: "0.5rem 1rem",
+  fontSize: "0.8rem",
+  color: "var(--tag-text)",               // ← lighter than before
+  background: "var(--social-bg)",
+  border: "1px solid var(--social-border)",
+  transition: "all 0.15s",
+  display: "inline-flex", alignItems: "center", gap: "0.4rem",
+}}
+  onMouseEnter={e => {
+    (e.currentTarget as HTMLAnchorElement).style.background = "var(--social-hover-bg)";
+    (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-primary)";
+  }}
+  onMouseLeave={e => {
+    (e.currentTarget as HTMLAnchorElement).style.background = "var(--social-bg)";
+    (e.currentTarget as HTMLAnchorElement).style.color = "var(--tag-text)";
+  }}
+>✉ Email</a>`
             : ""
         }
         ${
@@ -513,54 +536,139 @@ export default function Experience() {
 
 function generateProjects(data: PortfolioData): string {
   return `
-  "use client";
+"use client";
+import { motion } from "framer-motion";
+
+function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.5, delay, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export default function Projects() {
   const items = ${JSON.stringify(data.projects, null, 2)};
 
   return (
     <section id="projects" style={{ paddingBottom: "4rem" }}>
-      <p className="label" style={{ marginBottom: "1.25rem" }}>Projects</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      <FadeIn>
+        <p className="label" style={{ marginBottom: "1.25rem" }}>Projects</p>
+      </FadeIn>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
         {items.map((proj, i) => (
-          <div key={i} className="card" style={{ padding: "1.5rem",
-            transition: "border-color 0.2s" }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--text-muted)")}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border)")}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between",
-              alignItems: "flex-start", marginBottom: "0.6rem" }}>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600 }}>{proj.name}</h3>
-              <div style={{ display: "flex", gap: "0.75rem" }}>
-                {proj.liveUrl && (
-                  <a href={proj.liveUrl} target="_blank" rel="noreferrer"
-                    style={{ fontSize: "0.78rem", color: "var(--text-muted)",
-                      transition: "color 0.15s" }}
-                    onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
-                    onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
-                  >Live ↗</a>
-                )}
-                {proj.githubUrl && (
-                  <a href={proj.githubUrl} target="_blank" rel="noreferrer"
-                    style={{ fontSize: "0.78rem", color: "var(--text-muted)",
-                      transition: "color 0.15s" }}
-                    onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
-                    onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
-                  >GitHub ↗</a>
-                )}
+          <FadeIn key={i} delay={i * 0.08}>
+            <div
+              className="card"
+              style={{ overflow: "hidden", transition: "border-color 0.2s" }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--text-muted)")}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border)")}
+            >
+
+              {/* Project image */}
+              <div style={{
+                width: "100%",
+                aspectRatio: "16/7",
+                overflow: "hidden",
+                background: "var(--bg-secondary)",
+                borderBottom: "1px solid var(--border)",
+                position: "relative",
+              }}>
+                <img
+                  src={\`/project\${i + 1}.jpg\`}
+                  alt={proj.name}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "top",
+                    transition: "transform 0.4s ease",
+                  }}
+                  onError={e => {
+                    // try .png fallback, then hide
+                    const img = e.currentTarget as HTMLImageElement;
+                    if (!img.src.endsWith(".png")) {
+                      img.src = \`/project\${i + 1}.png\`;
+                    } else {
+                      img.parentElement!.style.display = "none";
+                    }
+                  }}
+                  onMouseEnter={e => ((e.currentTarget as HTMLImageElement).style.transform = "scale(1.02)")}
+                  onMouseLeave={e => ((e.currentTarget as HTMLImageElement).style.transform = "scale(1)")}
+                />
+
+                {/* index number — top left */}
+                <span style={{
+                  position: "absolute", top: "0.75rem", left: "0.75rem",
+                  fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.1em",
+                  color: "var(--text-muted)",
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "99px",
+                  padding: "0.2rem 0.6rem",
+                }}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+              </div>
+
+              {/* Content */}
+              <div style={{ padding: "1.25rem 1.5rem" }}>
+
+                {/* Title row */}
+                <div style={{
+                  display: "flex", justifyContent: "space-between",
+                  alignItems: "flex-start", marginBottom: "0.5rem",
+                }}>
+                  <h3 style={{ fontSize: "1rem", fontWeight: 600 }}>{proj.name}</h3>
+                  <div style={{ display: "flex", gap: "0.75rem", flexShrink: 0, marginLeft: "1rem" }}>
+                    {proj.liveUrl && (
+                      <a href={proj.liveUrl} target="_blank" rel="noreferrer"
+                        style={{ fontSize: "0.78rem", color: "var(--text-muted)", transition: "color 0.15s" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
+                      >Live ↗</a>
+                    )}
+                    {proj.githubUrl && (
+                      <a href={proj.githubUrl} target="_blank" rel="noreferrer"
+                        style={{ fontSize: "0.78rem", color: "var(--text-muted)", transition: "color 0.15s" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
+                      >GitHub ↗</a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Description */}
+                <p style={{
+                  fontSize: "0.875rem", color: "var(--text-secondary)",
+                  lineHeight: 1.75, marginBottom: "1rem",
+                }}>{proj.description}</p>
+
+                {/* Divider */}
+                <div style={{ height: "1px", background: "var(--border)", marginBottom: "1rem" }} />
+
+                {/* Tech stack */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                  {proj.techStack.map((tech, j) => (
+                    <span key={j} style={{
+                      fontSize: "0.72rem", padding: "0.2rem 0.65rem",
+                      background: "var(--tag-bg)",
+                      border: "1px solid var(--tag-border)",
+                      borderRadius: "99px",
+                      color: "var(--tag-text)",
+                    }}>{tech}</span>
+                  ))}
+                </div>
+
               </div>
             </div>
-            <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)",
-              lineHeight: 1.75, marginBottom: "1rem" }}>{proj.description}</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-              {proj.techStack.map((tech, j) => (
-                <span key={j} style={{
-                  fontSize: "0.72rem", padding: "0.2rem 0.65rem",
-                  border: "1px solid var(--border)", borderRadius: "99px",
-                  color: "var(--text-muted)",
-                }}>{tech}</span>
-              ))}
-            </div>
-          </div>
+          </FadeIn>
         ))}
       </div>
     </section>
